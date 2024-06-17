@@ -1,29 +1,44 @@
 import streamlit as st
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+import logging
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    pipeline,
+)
 
 # Configuración del modelo ajustado
-new_model = "llama-2-7b-reglamento"
+new_model = "models/llama-2-7b-reglamento"
 
 # Cargar el modelo y el tokenizador
-model = AutoModelForCausalLM.from_pretrained(new_model)
-tokenizer = AutoTokenizer.from_pretrained(new_model, trust_remote_code=True)
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"
+@st.cache_resource
+def load_model_and_tokenizer(model_name):
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    model.config.use_cache = True
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding_side = "right"
+    return model, tokenizer
 
-# Configurar el pipeline de generación de texto
-pipe = pipeline(task="text-generation", model=model, tokenizer=tokenizer, max_length=100)
+model, tokenizer = load_model_and_tokenizer(new_model)
+
+# Ignorar advertencias
+logging.getLogger("transformers").setLevel(logging.CRITICAL)
+
+def chat_with_model(prompt, max_length=100):
+    pipe = pipeline(task="text-generation", model=model, tokenizer=tokenizer, max_length=max_length)
+    result = pipe(f"<s>[INST] {prompt} [/INST]")
+    return result[0]['generated_text']
 
 # Título de la aplicación
-st.title("Generador de Texto con Llama 2")
+st.title("Chatbot Virtual con Llama 2")
 
 # Entrada de texto
-prompt = st.text_area("Introduce tu prompt:")
+prompt = st.text_input("Introduce tu prompt:")
 
 # Botón para generar texto
-if st.button("Generar texto"):
+if st.button("Enviar"):
     if prompt:
-        result = pipe(f"<s>[INST] {prompt} [/INST]")
-        generated_text = result[0]['generated_text']
-        st.text_area("Texto Generado:", value=generated_text, height=300)
+        response = chat_with_model(prompt)
+        st.text_area("Respuesta del Chatbot:", value=response, height=300)
     else:
         st.error("Por favor, introduce un prompt.")
