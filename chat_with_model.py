@@ -6,7 +6,7 @@ from transformers import (
 )
 
 # Fine-tuned model name
-new_model = "llama-2-7b-reglamento"
+new_model = "models/llama-2-7b-reglamento"
 
 # Load the fine-tuned model
 model = AutoModelForCausalLM.from_pretrained(new_model)
