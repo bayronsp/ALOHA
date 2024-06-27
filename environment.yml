@@ -1,4 +1,4 @@
-name: proyecto_aloha
+name: chat_aloha
 channels:
   - defaults
   - conda-forge
