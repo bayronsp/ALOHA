@@ -10,6 +10,7 @@ from transformers import (
 )
 from peft import LoraConfig, PeftModel
 from trl import SFTTrainer
+import joblib
 
 # The instruction dataset to use
 dataset_name = "bsalasp/qa-reglamento"
@@ -19,11 +20,11 @@ model_name = "NousResearch/Llama-2-7b-chat-hf"
 
 # Fine-tuned model name
 new_model = "llama-2-7b-reglamento"
-model_dir = os.path.join("models", new_model)
 
+model_dir = "models"
 # Create the models directory if it doesn't exist
 if not os.path.exists(model_dir):
-    os.makedirs(model_dir)
+    os.makedirs(model_dir, exist_ok=True)
 
 ################################################################################
 # QLoRA parameters
@@ -205,7 +206,7 @@ trainer = SFTTrainer(
 trainer.train()
 
 # Save trained model
-trainer.model.save_pretrained(model_dir)
+joblib.dump(trainer.model, os.path.join(model_dir, 'llama-2-7b-reglamento.joblib'))
 
 print(f"Model saved to {model_dir}")
 
