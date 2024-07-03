@@ -21,11 +21,6 @@ model_name = "NousResearch/Llama-2-7b-chat-hf"
 # Fine-tuned model name
 new_model = "llama-2-7b-reglamento"
 
-model_dir = "models"
-# Create the models directory if it doesn't exist
-if not os.path.exists(model_dir):
-    os.makedirs(model_dir, exist_ok=True)
-
 ################################################################################
 # QLoRA parameters
 ################################################################################
@@ -206,9 +201,8 @@ trainer = SFTTrainer(
 trainer.train()
 
 # Save trained model
-joblib.dump(trainer.model, os.path.join(model_dir, 'llama-2-7b-reglamento.joblib'))
+trainer.model.save_pretrained(new_model)
+# Save the tokenizer alongside the model
+trainer.tokenizer.save_pretrained(new_model)
 
-print(f"Model saved to {model_dir}")
-
-# Ignore warnings
-logging.set_verbosity(logging.CRITICAL)
+print(f"Model saved to {new_model}")
